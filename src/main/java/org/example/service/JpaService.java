@@ -1,7 +1,7 @@
-package org.example;
+package org.example.service;
 
-import org.example.annotations.Column;
-import org.example.annotations.Entity;
+import org.example.annotation.Column;
+import org.example.annotation.Entity;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -10,15 +10,15 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JpaService {
+public class JpaService<T> {
 
     private static final String URL = "jdbc:mysql://localhost:3306/users_db";
     private static final String USER = "root";
     private static final String PASSWORD = "root";
 
-    public List<Object> findAll(Class<?> aClass) throws SQLException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public List<T> findAll(Class<T> aClass) throws SQLException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         Entity annotation = aClass.getDeclaredAnnotation(Entity.class);
-        List<Object> resultList = new ArrayList<>();
+        List<T> resultList = new ArrayList<>();
         if (annotation == null) {
             return resultList;
         }
@@ -36,12 +36,12 @@ public class JpaService {
         return resultList;
     }
 
-    private List<Object> getEntitiesFromResultSet(ResultSet resultSet, Class<?> aClass) throws SQLException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        List<Object> entities = new ArrayList<>();
+    private List<T> getEntitiesFromResultSet(ResultSet resultSet, Class<T> aClass) throws SQLException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        List<T> entities = new ArrayList<>();
         Field[] declaredFields = aClass.getDeclaredFields();
         while (resultSet.next()) {
-            Constructor<?> declaredConstructor = aClass.getDeclaredConstructor();
-            Object instance = declaredConstructor.newInstance();
+            Constructor<T> declaredConstructor = aClass.getDeclaredConstructor();
+            T instance = declaredConstructor.newInstance();
             for (Field field : declaredFields) {
                 field.setAccessible(true);
                 Column column = field.getAnnotation(Column.class);
@@ -57,20 +57,14 @@ public class JpaService {
     }
 
     private Object getColumnValue(ResultSet resultSet, Class<?> type, String columnName) throws SQLException {
-        if (type == int.class || type == Integer.class) {
-            return resultSet.getInt(columnName);
-        } else if (type == String.class) {
-            return resultSet.getString(columnName);
-        } else if (type == long.class || type == Long.class) {
-            return resultSet.getLong(columnName);
-        } else if (type == double.class || type == Double.class) {
-            return resultSet.getDouble(columnName);
-        } else if (type == boolean.class || type == Boolean.class) {
-            return resultSet.getBoolean(columnName);
-        } else if (type == Date.class) {
-            return resultSet.getDate(columnName);
-        } else {
-            return null;
-        }
+        return switch (type.getSimpleName()) {
+            case "int", "Integer" -> resultSet.getInt(columnName);
+            case "String" -> resultSet.getString(columnName);
+            case "long", "Long" -> resultSet.getLong(columnName);
+            case "double", "Double" -> resultSet.getDouble(columnName);
+            case "boolean", "Boolean" -> resultSet.getBoolean(columnName);
+            case "Date" -> resultSet.getDate(columnName);
+            default -> null;
+        };
     }
 }

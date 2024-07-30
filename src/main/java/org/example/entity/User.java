@@ -1,7 +1,7 @@
 package org.example.entity;
 
-import org.example.annotations.Column;
-import org.example.annotations.Entity;
+import org.example.annotation.Column;
+import org.example.annotation.Entity;
 
 @Entity(tableName = "users")
 public class User {
