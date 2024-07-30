@@ -14,4 +14,13 @@ public class User {
 
     @Column(columnName = "age")
     private int age;
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", age=" + age +
+                '}';
+    }
 }
